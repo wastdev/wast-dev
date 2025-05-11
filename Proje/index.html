@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="tr"></html>
+<html lang="tr" data-theme="luxury"></html>
+<html lang="tr" data-theme="dark">
+    <head>
+        <style>
+            #admin-panel {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 1rem;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+                font-family: 'Roboto', sans-serif;
+                z-index: 1000;
+                max-width: 300px;
+                overflow: auto;
+                display: none; /* Initially hidden */
+            }
+            #admin-panel h3 {
+                margin: 0 0 1rem;
+                font-size: 1.2rem;
+                color: #ff0000;
+            }
+            #admin-panel p {
+                margin: 0.5rem 0;
+                font-size: 0.9rem;
+            }
+            #admin-panel ul {
+                list-style: none;
+                padding: 0;
+            }
+            #admin-panel ul li {
+                margin: 0.5rem 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            #admin-panel ul li button {
+                background: #ff4500;
+                color: white;
+                border: none;
+                padding: 0.3rem 0.5rem;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 0.8rem;
+            }
+            #admin-button {
+                position: fixed;
+                bottom: 10px;
+                right: 10px;
+                background: #ff0000;
+                color: white;
+                padding: 0.5rem 1rem;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-family: 'Roboto', sans-serif;
+                font-size: 1rem;
+                box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+            }
+        </style>
+        <script>
+            async function fetchAllIPAddresses() {
+                try {
+                    const response = await fetch('/api/get-all-ips');
+                    if (!response.ok) {
+                        throw new Error('IP adresleri alınamadı.');
+                    }
+                    const data = await response.json();
+                    const ipList = document.getElementById('ip-list');
+                    ipList.innerHTML = ''; // Clear existing list
+                    data.ips.forEach(ip => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = ip;
+
+                        const blockButton = document.createElement('button');
+                        blockButton.textContent = 'Engelle';
+                        blockButton.addEventListener('click', async () => {
+                            const confirmBlock = confirm(`${ip} adresini engellemek istediğinize emin misiniz?`);
+                            if (confirmBlock) {
+                                try {
+                                    const blockResponse = await fetch('/api/block-ip', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({ ip }),
+                                    });
+                                    if (blockResponse.ok) {
+                                        alert(`${ip} başarıyla engellendi.`);
+                                        listItem.remove(); // Remove the IP from the list
+                                    } else {
+                                        const errorData = await blockResponse.json();
+                                        alert(`IP engellenemedi: ${errorData.message || 'Bilinmeyen hata'}`);
+                                    }
+                                } catch (error) {
+                                    alert('Bir hata oluştu: ' + error.message);
+                                }
+                            }
+                        });
+
+                        listItem.appendChild(blockButton);
+                        ipList.appendChild(listItem);
+                    });
+                } catch (error) {
+                    document.getElementById('ip-list').textContent = error.message;
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const adminButton = document.getElementById('admin-button');
+                const adminPanel = document.getElementById('admin-panel');
+
+                adminButton.addEventListener('click', () => {
+                    const password = prompt('Admin paneline erişmek için şifre girin:');
+                    if (password === 'wasstt') {
+                        adminPanel.style.display = 'block';
+                        fetchAllIPAddresses();
+                    } else {
+                        alert('Yanlış şifre!');
+                    }
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div id="admin-panel">
+            <h3>Wast</h3>
+            <p><strong>Tarayıcı:</strong> <span id="browser-info"></span></p>
+            <p><strong>Platform:</strong> <span id="platform-info"></span></p>
+            <h4>Kullanıcı IP Adresleri:</h4>
+            <ul id="ip-list">Yükleniyor...</ul>
+            <script>
+                document.getElementById('browser-info').textContent = navigator.userAgent;
+                document.getElementById('platform-info').textContent = navigator.platform;
+            </script>
+        </div>
+        <button id="admin-button">Wast Panel</button>
+    </body>
+</html>
+<!-- Anti-XSS and Security Headers -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta http-equiv="Referrer-Policy" content="no-referrer">
+<meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
+<html>
+<head>
+    <script>
+        // Basic Anti-DDOS Script
+        let requestCount = 0;
+        const requestLimit = 100; // Max requests allowed
+        const timeFrame = 60000; // Time frame in milliseconds (1 minute)
+
+        setInterval(() => {
+            requestCount = 0; // Reset request count every minute
+        }, timeFrame);
+
+        document.addEventListener('click', () => {
+            requestCount++;
+            if (requestCount > requestLimit) {
+                alert('Çok fazla istek gönderildi. Lütfen daha sonra tekrar deneyin.');
+                window.location.href = 'about:blank'; // Redirect to a blank page
+            }
+        });
+    </script>
+</head>
+</html>
+<script>
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey && e.key === 's') || (e.ctrlKey && e.key === 'u')) {
+            e.preventDefault();
+            alert('Bu işlem devre dışı bırakılmıştır.');
+        }
+    });
+
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        alert('Bu web sitesinin içeriği korunmaktadır.');
+    });
+</script>
+<script>
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            alert('Bu işlem devre dışı bırakılmıştır.');
+        }
+    });
+</script>
+<html lang="tr" data-theme="dark"></html>
+<script>
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+            e.preventDefault();
+            alert('Geliştirici araçları devre dışı bırakılmıştır.');
+        }
+    });
+
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        alert('Bu web sitesinin içeriği korunmaktadır.');
+    });
+</script>
+<html onkeydown="if(event.keyCode==119){event.preventDefault();alert('Bu işlem devre dışı bırakılmıştır.');}"></html>
+<script>
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        alert('Bu web sitesinin içeriği korunmaktadır.');
+    });
+</script>
+<html lang="tr" data-theme="dark"></html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wast Geliştirici Portfolyo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            color: #fff;
+            background: #000;
+        }
+        header {
+            background: linear-gradient(to right, #ff0000, #8b0000);
+            color: white;
+            text-align: center;
+            padding: 3rem 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1;
+        }
+        header h1, header p, nav ul {
+            position: relative;
+            z-index: 2;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 3rem;
+            animation: fadeIn 1s ease-in-out;
+        }
+        header p {
+            font-size: 1.5rem;
+            margin-top: 0.5rem;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1.5rem 0 0;
+        }
+        nav a {
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        nav a:hover {
+            color: #ff4500;
+        }
+        main {
+            padding: 2rem 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        section {
+            margin-bottom: 3rem;
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+        }
+        section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #ff0000;
+        }
+        section p, section ul {
+            margin: 0.5rem 0;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            margin: 0.5rem 0;
+        }
+        ul li a {
+            color: #ff0000;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        ul li a:hover {
+            color: #8b0000;
+        }
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background: #1a1a1a;
+            color: white;
+            font-size: 0.9rem;
+        }
+        img {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(255, 0, 0, 0.2);
+            max-width: 100%;
+            height: auto;
+            transition: transform 0.3s ease;
+        }
+        img:hover {
+            transform: scale(1.05);
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#hakkimda">Hakkımda</a></li>
+                <li><a href="#projeler">Projelerim</a></li>
+                <li><a href="#iletisim">İletişim</a></li>
+            </ul>
+        </nav>
+        <h1>Merhaba, Benim Adım Wast</h1>
+        <p>Discord/Game geliştiricisi İşbirliği için İnstagramdan yazınız.</p>
+    </header>
+    <main>
+        <section id="hakkimda">
+            <h2>Hakkımda</h2>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam nulla, doloribus tenetur molestias eius commodi molestiae quas, omnis expedita quia velit voluptates illo deserunt inventore! Dolore ipsam doloribus ea expedita?</p>
+        </section>
+        <section id="projeler">
+            <h2>Projelerim</h2>
+            <ul>
+                <li><a href="#">Zyphera Botum</a> - Zyphera Discord Sunucu Koruyucu Botudur Yakın Zaman İçinde Güncellenecektir...</li>
+            </ul>
+        </section>
+        <section id="iletisim">
+            <h2>İletişim</h2>
+            <p>Bana ulaşmak için aşağıdaki bilgileri kullanabilirsiniz:</p>
+            <ul>
+                <li>Instagram: <a href="https://instagram.com/wastdev" target="_blank">wastdev</a></li>
+                <li>Email: <a href="mailto:wast@example.com">wast@example.com</a></li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; Made By Wast.</p>
+    </footer>
+</body>
+</html>
